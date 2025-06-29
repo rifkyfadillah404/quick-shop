@@ -57,8 +57,16 @@
                 @foreach ($featuredProducts as $product)
                     <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
                         <div class="h-48 bg-gray-200 overflow-hidden">
-                            <img src="{{ $product->main_image }}" alt="{{ $product->name }}"
-                                class="w-full h-full object-cover hover:scale-105 transition duration-300">
+                            @if ($product->main_image)
+                                <img src="{{ $product->main_image }}" alt="{{ $product->name }}" loading="lazy"
+                                    decoding="async"
+                                    class="w-full h-full object-cover hover:scale-105 transition duration-300"
+                                    style="content-visibility: auto;">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <span class="text-gray-400">No Image</span>
+                                </div>
+                            @endif
                         </div>
                         <div class="p-4">
                             <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $product->name }}</h3>
@@ -120,5 +128,5 @@
         </div>
     </div>
 
-   
+
 @endsection

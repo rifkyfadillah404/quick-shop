@@ -10,15 +10,29 @@ class ShopController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::active()->inStock()->with('category');
+        // Cache categories for 1 hour (they don't change often)
+        $categories = cache()->remember('shop_categories', 3600, function () {
+            return Category::active()
+                ->select('id', 'name', 'slug')
+                ->get();
+        });
 
-        // Search
+        // Build query with optimized select and eager loading
+        $query = Product::active()
+            ->inStock()
+            ->with('category:id,name,slug')
+            ->select('id', 'name', 'slug', 'price', 'images', 'category_id', 'stock_quantity', 'in_stock', 'created_at');
+
+        // Search with index optimization
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('description', 'like', '%' . $request->search . '%');
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%');
+            });
         }
 
-        // Category filter
+        // Category filter - more efficient with join
         if ($request->filled('category')) {
             $query->whereHas('category', function ($q) use ($request) {
                 $q->where('slug', $request->category);
@@ -49,8 +63,8 @@ class ShopController extends Controller
                 $query->orderBy('name', 'asc');
         }
 
+        // Use regular pagination to support total count
         $products = $query->paginate(12);
-        $categories = Category::active()->get();
 
         return view('shop.index', compact('products', 'categories'));
     }

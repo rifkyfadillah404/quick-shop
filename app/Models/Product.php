@@ -113,19 +113,55 @@ class Product extends Model
     // Image helper methods
     public function getMainImageAttribute()
     {
-        if ($this->images && is_array($this->images) && count($this->images) > 0) {
-            return asset('storage/' . $this->images[0]);
+        // Handle null or empty images
+        if (empty($this->images)) {
+            return asset('images/no-image.svg');
         }
-        return asset('images/no-image.svg'); // Default placeholder
+
+        // Handle array format
+        if (is_array($this->images) && count($this->images) > 0) {
+            $firstImage = $this->images[0];
+            // Make sure it's a string
+            if (is_string($firstImage) && !empty($firstImage)) {
+                return asset('storage/' . $firstImage);
+            }
+        }
+
+        // Handle string format (single image)
+        if (is_string($this->images) && !empty($this->images)) {
+            return asset('storage/' . $this->images);
+        }
+
+        // Default fallback
+        return asset('images/no-image.svg');
     }
 
     public function getAllImagesAttribute()
     {
-        if ($this->images && is_array($this->images)) {
-            return array_map(function ($image) {
-                return asset('storage/' . $image);
-            }, $this->images);
+        // Handle null or empty images
+        if (empty($this->images)) {
+            return [asset('images/no-image.svg')];
         }
+
+        // Handle array format
+        if (is_array($this->images)) {
+            $validImages = array_filter($this->images, function ($image) {
+                return is_string($image) && !empty($image);
+            });
+
+            if (!empty($validImages)) {
+                return array_map(function ($image) {
+                    return asset('storage/' . $image);
+                }, $validImages);
+            }
+        }
+
+        // Handle string format (single image)
+        if (is_string($this->images) && !empty($this->images)) {
+            return [asset('storage/' . $this->images)];
+        }
+
+        // Default fallback
         return [asset('images/no-image.svg')];
     }
 }

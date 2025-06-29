@@ -37,23 +37,27 @@ class LatestOrders extends BaseWidget
                     ->money('USD')
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors([
-                        'warning' => 'pending',
-                        'primary' => 'processing',
-                        'info' => 'shipped',
-                        'success' => 'delivered',
-                        'danger' => 'cancelled',
-                    ]),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'pending' => 'warning',
+                        'processing' => 'primary',
+                        'shipped' => 'info',
+                        'delivered' => 'success',
+                        'cancelled' => 'danger',
+                        default => 'gray',
+                    }),
 
-                Tables\Columns\BadgeColumn::make('payment_status')
+                Tables\Columns\TextColumn::make('payment_status')
                     ->label('Payment')
-                    ->colors([
-                        'warning' => 'pending',
-                        'success' => 'paid',
-                        'danger' => 'failed',
-                        'secondary' => 'refunded',
-                    ]),
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'pending' => 'warning',
+                        'paid' => 'success',
+                        'failed' => 'danger',
+                        'refunded' => 'secondary',
+                        default => 'gray',
+                    }),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Date')
@@ -61,9 +65,9 @@ class LatestOrders extends BaseWidget
                     ->sortable(),
             ])
             ->actions([
-                Tables\Actions\Action::make('view')
-                    ->url(fn(Order $record): string => route('filament.admin.resources.orders.view', $record))
-                    ->icon('heroicon-m-eye'),
+                Tables\Actions\Action::make('edit')
+                    ->url(fn(Order $record): string => route('filament.admin.resources.orders.edit', $record))
+                    ->icon('heroicon-m-pencil-square'),
             ]);
     }
 }

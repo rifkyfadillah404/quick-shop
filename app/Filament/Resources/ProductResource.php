@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
-use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
 use App\Models\Category;
 use Filament\Forms;
@@ -12,7 +11,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 
 class ProductResource extends Resource
@@ -144,9 +142,25 @@ class ProductResource extends Resource
                     ->size(50)
                     ->defaultImageUrl(asset('images/no-image.svg'))
                     ->getStateUsing(function ($record) {
-                        if ($record->images && is_array($record->images) && count($record->images) > 0) {
-                            return asset('storage/' . $record->images[0]);
+                        // Handle null or empty images
+                        if (empty($record->images)) {
+                            return null;
                         }
+
+                        // Handle array format
+                        if (is_array($record->images) && count($record->images) > 0) {
+                            $firstImage = $record->images[0];
+                            // Make sure it's a string
+                            if (is_string($firstImage) && !empty($firstImage)) {
+                                return asset('storage/' . $firstImage);
+                            }
+                        }
+
+                        // Handle string format (single image)
+                        if (is_string($record->images) && !empty($record->images)) {
+                            return asset('storage/' . $record->images);
+                        }
+
                         return null;
                     }),
 

@@ -81,8 +81,12 @@
                 <!-- Results Info -->
                 <div class="flex justify-between items-center mb-6">
                     <p class="text-gray-600">
-                        Showing {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }} of
-                        {{ $products->total() }} products
+                        @if (method_exists($products, 'total'))
+                            Showing {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }} of
+                            {{ $products->total() }} products
+                        @else
+                            Showing {{ $products->count() }} products
+                        @endif
                     </p>
                 </div>
 
@@ -92,8 +96,16 @@
                             <div
                                 class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
                                 <div class="h-48 bg-gray-200 overflow-hidden">
-                                    <img src="{{ $product->main_image }}" alt="{{ $product->name }}"
-                                        class="w-full h-full object-cover hover:scale-105 transition duration-300">
+                                    @if ($product->main_image)
+                                        <img src="{{ $product->main_image }}" alt="{{ $product->name }}" loading="lazy"
+                                            decoding="async"
+                                            class="w-full h-full object-cover hover:scale-105 transition duration-300"
+                                            style="content-visibility: auto;">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center">
+                                            <span class="text-gray-400">No Image</span>
+                                        </div>
+                                    @endif
                                 </div>
                                 <div class="p-4">
                                     <div class="text-sm text-indigo-600 mb-1">{{ $product->category->name }}</div>
